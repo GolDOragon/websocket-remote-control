@@ -1,18 +1,19 @@
 import robot from 'robotjs';
-import WebSocket from 'ws';
+import { Duplex } from 'stream';
 
 import { drawCircle, drawRectangle } from './drawMethods';
 import { makeScreenshot } from './makeScreenshot';
 
-const handleMessage = (ws: WebSocket) => async (data: Buffer) => {
+export const socketHandler = (wsStream: Duplex) => async (data: Buffer) => {
   const [cmd, num = '', rectangleLength] = data.toString().split(' ');
 
   const { x: x1, y: y1 } = robot.getMousePos();
   const offset = parseFloat(num);
 
+  wsStream.write(`${cmd || ''}\0`);
   switch (cmd) {
     case 'mouse_position':
-      ws.send(`mouse_position {${x1}},{${y1}}`);
+      wsStream.write(`mouse_position {${x1}},{${y1}}`);
       break;
 
     case 'mouse_up':
@@ -41,17 +42,6 @@ const handleMessage = (ws: WebSocket) => async (data: Buffer) => {
       break;
 
     case 'prnt_scrn':
-      await makeScreenshot(ws);
+      await makeScreenshot(wsStream);
   }
-
-  ws.send(cmd + '\0');
-};
-
-export const handleConnection = (ws: WebSocket) => {
-  console.log('Connection accepted');
-  ws.on('message', handleMessage(ws));
-};
-
-export const handleClose = (data: unknown) => {
-  console.log(data);
 };

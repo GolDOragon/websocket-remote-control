@@ -4,7 +4,7 @@ import path from 'path';
 
 export const httpServer = http.createServer(function (req, res) {
   const dirname = path.resolve(path.dirname(''));
-  const filePath = `${dirname}/front${req.url === '/' ? '/index.html' : req.url}`;
+  const filePath = `${dirname}/front${req.url === '/' ? '/index.html' : req.url || ''}`;
 
   fs.readFile(filePath, function (err, data) {
     if (err) {
